@@ -1,8 +1,4 @@
 # Flow Log Parser
-- Qingyu Zhu, 2024/10/02
-
-## Overview
-
 This Python program parses a flow log file and maps each row to a tag based on a lookup table. It generates an output file containing:
 
 - Count of matches for each tag.
