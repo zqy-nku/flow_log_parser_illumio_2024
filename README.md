@@ -13,10 +13,10 @@ The lookup table is structured as a nested dictionary, where the protocol is the
 ## Files
 
 - **`flow_log_parser.py`**: The main Python script.
-- **flow_logs.txt**: A text file containing the flow log data (e.g., `flow_logs.txt`).
+- **flow_logs.txt**: A text file containing the flow log data (e.g., `flow_logs.txt`, `flow_logs_empty.txt`).
 - **Lookup Table File**: A CSV file containing the tag mappings (e.g., `lookup_table.csv`).
 - **Protocol Numbers File**: A CSV file containing the protocol numbers (e.g., `protocol_numbers.csv`).
-- **Output File**: The file where the results will be written (e.g., `output.txt`).
+- **Output File**: The file where the results will be written (e.g., `output.txt`, `output_empty.txt`).
 
 ## Assumptions
 
@@ -103,24 +103,51 @@ The flow log file should be in the default AWS VPC flow log format, version 2. E
    ```bash
    python3 flow_log_parser.py flow_logs.txt lookup_table.csv protocol_numbers.csv output.txt
    ```
+   
+   ```bash
+   python3 flow_log_parser.py flow_logs_empty.txt lookup_table.csv protocol_numbers.csv output_empty.txt
+   ```
 
-## Program Structure
+
+## Tests and Validation
+
+### 1. **Sample Data Test**
+
+The sample data was used to validate that the program correctly maps the flow log entries to the tags defined in the lookup table. The output was compared against expected counts for both tag and port/protocol combinations. The test confirmed that:
+   - Each line in the flow log file was correctly parsed.
+   - The destination port and protocol were accurately matched to tags in the lookup table.
+   - Unmatched entries were assigned the "Untagged" label.
+
+### 2. **Invalid Data Handling**
+
+The program was tested with invalid flow log entries, such as:
+   - Entries with missing fields.
+   - Non-numeric values for `dstport` and `protocol`.
+   - The program gracefully skipped over these invalid lines and processed the remaining valid entries without any issues.
+
+### 3. **Protocol Mapping Test**
+
+The `protocol_numbers.csv` file was validated to ensure that protocol numbers from the flow log were correctly mapped to protocol names. For any unmatched protocol numbers, the program used the numeric protocol number as a fallback.
+
+### 4. **Edge Cases**
+
+- **Empty files**: Tested with an empty flow log file to confirm that the program correctly outputs an empty result.
+- **Non-standard characters**: Checked for robustness in handling any special characters or unexpected text in log entries.
+
+## Program Structure & Features Analysis
+
+### Structure
 
 The program is structured into the following functions:
 
 1. **`load_lookup_table(filename)`**: Loads the lookup table from the specified CSV file into a nested dictionary. Returns a dictionary where the outer key is the protocol and the inner key is the port.
-
 2. **`load_protocol_map(protocol_numbers_file)`**: Loads the protocol numbers from the specified CSV file. Returns a dictionary mapping protocol numbers to protocol names.
-
 3. **`parse_flow_log_line(line, protocol_map)`**: Parses a single line from the flow log. Returns a tuple `(dstport, protocol_name)` or `None` if the line is invalid.
-
 4. **`process_flow_log(flow_log_file, protocol_map, lookup_table)`**: Processes the flow log file and updates tag counts and port/protocol counts. Returns two dictionaries: `tag_counts` and `port_protocol_counts`.
-
 5. **`write_output(output_file, tag_counts, port_protocol_counts)`**: Writes the tag counts and port/protocol counts to the output file.
-
 6. **`main()`**: Entry point of the program. Parses command-line arguments and orchestrates the program flow.
 
-## Features
+### Features
 
 - **Extensibility**: The program is designed in a modular fashion, making it easier to extend or modify in the future.
 - **Efficient Lookup**: Uses a nested dictionary for lookups, grouping ports under their corresponding protocols, making the lookup faster and more structured.
